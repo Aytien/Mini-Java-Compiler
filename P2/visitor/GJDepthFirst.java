@@ -13,7 +13,16 @@ import java.util.*;
 public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    //
    // Auto class visitors--probably don't need to be overridden.
-  
+   
+   int ir_gen=0;
+   int check_class=0;
+   int in_fn=0;
+   int class_index=0;
+   String class_name="";
+   ArrayList<String> scope=new ArrayList<String>();
+   ArrayList<ArrayList<String>> expr_lists=new ArrayList<ArrayList<String>>();
+
+
 	 public R visit(NodeList n, A argu) {
       R _ret=null;
       int _count=0;
@@ -57,6 +66,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 
    public R visit(NodeToken n, A argu) { return (R)n.tokenImage; }
 
+   HashMap<String,class_info> class_list=new HashMap<String,class_info> ();
    //
    // User-generated visitor methods below
    //
@@ -70,12 +80,43 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      
       n.f0.accept(this, argu);
       n.f1.accept(this, argu);
       n.f2.accept(this, argu);
+
+      for(Map.Entry<String,class_info> itr : class_list.entrySet())
+      {
+         class_info cur_class=itr.getValue();
+         System.out.println(cur_class.class_name);
+         for(Map.Entry<String,String> class_vars : cur_class.class_variables.entrySet())
+         {
+            System.out.println(class_vars.getKey()+" Type:"+class_vars.getValue()+" Index:"+cur_class.class_var_locs.get(class_vars.getKey()));
+         }
+
+         for(Map.Entry<String,fn_info> class_fns : cur_class.mem_fn_info.entrySet())
+         {
+            fn_info cur_fn=class_fns.getValue();
+            System.out.println(cur_fn.fn_name);
+            for(Map.Entry<String,String> fn_args : cur_fn.fn_arguments.entrySet())
+            {
+               System.out.println(fn_args.getKey()+" Type:"+fn_args.getValue()+" Index:"+cur_fn.fn_arg_locs.get(fn_args.getKey()));
+            }
+            for(Map.Entry<String,String> fn_vars : cur_fn.fn_variables.entrySet())
+            {
+               System.out.println(fn_vars.getKey()+" Type:"+fn_vars.getValue()+" Index:"+cur_fn.fn_var_locs.get(fn_vars.getKey()));
+            }
+         }
+      }
+
+      // scope.add("global");     
+      // ir_gen=1;   
+      // n.f0.accept(this, argu);
+      // n.f1.accept(this, argu);
+      // n.f2.accept(this, argu);
+
       return _ret;
    }
+
 
    /**
     * f0 -> "class"
@@ -98,25 +139,65 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(MainClass n, A argu) {
 		/* YOUR CODE HERE */
-
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
-      n.f6.accept(this, argu);
-      n.f7.accept(this, argu);
-      n.f8.accept(this, argu);
-      n.f9.accept(this, argu);
-      n.f10.accept(this, argu);
-      n.f11.accept(this, argu);
-      n.f12.accept(this, argu);
-      n.f13.accept(this, argu);
-      n.f14.accept(this, argu);
-      n.f15.accept(this, argu);
-      n.f16.accept(this, argu);
+      if(ir_gen==0)
+      {
+         class_info new_class=new class_info();
+         fn_info main_fn=new fn_info();
+         
+         n.f0.accept(this, argu);
+
+         new_class.class_name=n.f1.accept(this, argu).toString();
+         new_class.parent_class="";
+         new_class.index=class_index;
+         class_index++;
+
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+
+         main_fn.class_name=new_class.class_name;
+         main_fn.ret_type=n.f5.accept(this, argu).toString();
+         main_fn.fn_name=n.f6.accept(this, argu).toString();
+         
+         n.f7.accept(this, argu);
+         n.f8.accept(this, argu);
+         n.f9.accept(this, argu);
+         n.f10.accept(this, argu);
+         main_fn.fn_arguments.put(n.f11.accept(this, argu).toString(), "String[]");
+         n.f12.accept(this, argu);
+         n.f13.accept(this, argu);
+         n.f14.accept(this, argu);
+         n.f15.accept(this, argu);
+         n.f16.accept(this, argu);
+
+         new_class.mem_fn_info.put(main_fn.fn_name,main_fn );
+         class_list.put(new_class.class_name,new_class);
+      }
+      else
+      {
+         
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+         n.f6.accept(this, argu);
+         n.f7.accept(this, argu);
+         n.f8.accept(this, argu);
+         n.f9.accept(this, argu);
+         n.f10.accept(this, argu);
+         n.f11.accept(this, argu);
+         n.f12.accept(this, argu);
+         n.f13.accept(this, argu);
+         n.f14.accept(this, argu);
+         n.f15.accept(this, argu);
+         n.f16.accept(this, argu);
+
+         return _ret;
+         
+      }
       return _ret;
    }
 
@@ -140,15 +221,47 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(ClassDeclaration n, A argu) {
 		/* YOUR CODE HERE */
-
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
-      return _ret;
+      if(ir_gen==0)
+      {
+         class_info new_class=new class_info();
+
+         n.f0.accept(this, argu);
+
+         new_class.class_name=n.f1.accept(this, argu).toString();
+         new_class.parent_class="";
+         new_class.index=class_index;
+         class_index++;
+
+         class_list.put(new_class.class_name,new_class);
+
+         
+         A cl_name=(A)new_class.class_name;
+
+         ArrayList<String> is_class= new ArrayList<String>();
+         is_class.add("1");
+         is_class.add(new_class.class_name);
+         
+         n.f2.accept(this, argu);
+         n.f3.accept(this, (A)is_class);
+         
+         n.f4.accept(this, cl_name);
+         n.f5.accept(this, argu);
+         
+         return _ret;
+      }
+      else
+      {     
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+
+         return _ret;
+      }
+      
    }
 
    /**
@@ -165,15 +278,47 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
-      n.f6.accept(this, argu);
-      n.f7.accept(this, argu);
-      return _ret;
+      if(ir_gen==0)
+      {
+         class_info new_class=new class_info();
+         n.f0.accept(this, argu);
+      
+         new_class.class_name=n.f1.accept(this, argu).toString();
+         
+         new_class.index=class_index;
+         class_index++;
+
+         n.f2.accept(this, argu);
+         
+         new_class.parent_class=n.f3.accept(this, argu).toString();
+
+         class_list.put(new_class.class_name,new_class);
+
+         A cl_name=(A)new_class.class_name;
+
+         ArrayList<String> is_class= new ArrayList<String>();
+         is_class.add("1");
+         is_class.add(new_class.class_name);
+      
+         n.f4.accept(this, argu);
+         n.f5.accept(this, (A)is_class);
+         n.f6.accept(this, cl_name);
+         n.f7.accept(this, argu);
+         return _ret;
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+         n.f6.accept(this, argu);
+         n.f7.accept(this, argu);
+
+         return _ret;
+      }
    }
 
    /**
@@ -185,9 +330,49 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==0)
+      {
+         int f=0;
+         ArrayList<String> inp=(ArrayList<String>)argu;
+         if(inp.get(0)=="1")
+         {
+            f=1;
+         }
+
+         class_info cur_class=class_list.get(inp.get(1));
+         
+         
+         String type=n.f0.accept(this, argu).toString();
+         String name=n.f1.accept(this, argu).toString();
+
+         if(f==1)
+         {
+            cur_class.class_variables.put(name,type);
+            cur_class.class_var_locs.put(name,cur_class.class_variables.size());
+            class_list.put(cur_class.class_name, cur_class);
+            
+         }
+         else
+         {
+            fn_info cur_fn=cur_class.mem_fn_info.get(inp.get(0));
+
+            cur_fn.fn_variables.put(name,type);
+
+            cur_fn.fn_var_locs.put(name, cur_fn.fn_variables.size());
+
+            cur_class.mem_fn_info.put(cur_fn.fn_name, cur_fn);
+
+            class_list.put(cur_class.class_name, cur_class);
+         }
+
+         n.f2.accept(this, argu);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -208,21 +393,61 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(MethodDeclaration n, A argu) {
 		/* YOUR CODE HERE */
-
+      
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
-      n.f6.accept(this, argu);
-      n.f7.accept(this, argu);
-      n.f8.accept(this, argu);
-      n.f9.accept(this, argu);
-      n.f10.accept(this, argu);
-      n.f11.accept(this, argu);
-      n.f12.accept(this, argu);
+      String cur_fn_name="";
+      
+      if(ir_gen==0)
+      {
+         fn_info new_fn=new fn_info();
+         new_fn.class_name=(String)argu;
+         class_info cur_class=class_list.get(new_fn.class_name);
+
+         n.f0.accept(this, argu);
+
+         new_fn.ret_type=n.f1.accept(this, argu).toString();
+         new_fn.fn_name=n.f2.accept(this, argu).toString();
+
+         ArrayList<String> fn_class_name= new ArrayList<String>();
+
+         fn_class_name.add(new_fn.fn_name);
+         fn_class_name.add(new_fn.class_name);
+
+         cur_fn_name=new_fn.fn_name;
+         
+         cur_class.mem_fn_info.put(new_fn.fn_name, new_fn);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, (A)fn_class_name);
+
+         n.f5.accept(this, argu);
+         n.f6.accept(this, argu);
+
+         n.f7.accept(this, (A)fn_class_name);
+         n.f8.accept(this, argu);
+         n.f9.accept(this, argu);
+         n.f10.accept(this, argu);
+         n.f11.accept(this, argu);
+         n.f12.accept(this, argu);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+         n.f6.accept(this, argu);
+         n.f7.accept(this, argu);
+         n.f8.accept(this, argu);
+         n.f9.accept(this, argu);
+         n.f10.accept(this, argu);
+         n.f11.accept(this, argu);
+         n.f12.accept(this, argu);
+
+      }
+
+
       return _ret;
    }
 
@@ -234,8 +459,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
+      n.f0.accept(this,argu);
+      n.f1.accept(this,argu);
       return _ret;
    }
 
@@ -247,8 +472,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
+      if(ir_gen==0)
+      {
+         ArrayList<String> inp=(ArrayList<String>)argu;
+
+         class_info cur_class=class_list.get(inp.get(1));
+
+         String type=n.f0.accept(this, argu).toString();
+         String name=n.f1.accept(this, argu).toString();  
+
+         fn_info cur_fn=cur_class.mem_fn_info.get(inp.get(0));
+
+         cur_fn.fn_argument_types.add(type);
+         cur_fn.fn_arg_locs.put(name,cur_fn.fn_arguments.size()+1);
+         cur_fn.fn_arguments.put(name,type);
+
+         cur_class.mem_fn_info.put(cur_fn.fn_name, cur_fn);
+
+         class_list.put(cur_class.class_name, cur_class);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+      }
+
       return _ret;
    }
 
@@ -274,8 +522,9 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    public R visit(Type n, A argu) {
 		/* YOUR CODE HERE */
 
-      R _ret=null;
-      n.f0.accept(this, argu);
+      check_class=1;
+      R _ret=n.f0.accept(this, argu);
+      check_class=0;
       return _ret;
    }
 
@@ -291,6 +540,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       n.f0.accept(this, argu);
       n.f1.accept(this, argu);
       n.f2.accept(this, argu);
+      _ret=(R)(n.f0.accept(this, argu).toString()+n.f1.accept(this, argu).toString()+n.f2.accept(this, argu).toString());
       return _ret;
    }
 
@@ -299,9 +549,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(BooleanType n, A argu) {
 		/* YOUR CODE HERE */
-
-      R _ret=null;
-      n.f0.accept(this, argu);
+      R _ret=n.f0.accept(this, argu);
       return _ret;
    }
 
@@ -311,8 +559,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    public R visit(IntegerType n, A argu) {
 		/* YOUR CODE HERE */
 
-      R _ret=null;
-      n.f0.accept(this, argu);
+      R _ret=n.f0.accept(this, argu);
       return _ret;
    }
 
@@ -326,7 +573,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(Statement n, A argu) {
       R _ret=null;
-      n.f0.accept(this, argu);
+      _ret=n.f0.accept(this, argu);
       return _ret;
    }
 
@@ -340,6 +587,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       n.f0.accept(this, argu);
       n.f1.accept(this, argu);
       n.f2.accept(this, argu);
+      if(ir_gen==1)
+      _ret=(R)"true";
       return _ret;
    }
 
@@ -353,10 +602,49 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"true";
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString(); 
+         if(!type1.equals(type2))
+         {
+            if(class_list.containsKey(type1)&&class_list.containsKey(type2))
+            {
+               if(checkif_parent(type2,type1))
+               {
+                  n.f3.accept(this, argu);
+                  return _ret;
+               }
+               else
+               {
+                  // System.out.println("Type of id: "+type1+" not equal to type of expr: "+type2);
+                  System.out.println("Type Error");
+                  System.exit(1);
+                  n.f3.accept(this, argu);
+                  return _ret=(R)"false";
+               }
+            }
+            else
+            {
+               // System.out.println("Type of id: "+type1+" not equal to type of expr: "+type2);
+               System.out.println("Type Error");
+               System.exit(1);
+               _ret=(R)"false";
+            }
+            
+         }
+         n.f3.accept(this, argu);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -373,13 +661,51 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
-      n.f6.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"true";
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         if(!type1.equals("int[]"))
+         {
+            // System.out.println("Type of identifier must be int[] is: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of expression must be int is: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         String type3=n.f5.accept(this, argu).toString();
+         if(!type3.equals("int"))
+         {
+            // System.out.println("Type of expression must be int is: "+type3);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         n.f6.accept(this, argu);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+         n.f6.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -389,7 +715,14 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(IfStatement n, A argu) {
       R _ret=null;
-      n.f0.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=n.f0.accept(this, argu);
+      }
+      else{
+         n.f0.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -404,11 +737,35 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"true";
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         String type1=n.f2.accept(this, argu).toString();
+         if(!type1.equals("boolean"))
+         {
+            // System.out.println("Type of expression must be boolean is: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         n.f3.accept(this, argu);
+         String sir_gen=n.f4.accept(this, argu).toString();
+         if(!sir_gen.equals("true"))
+         {
+            _ret=(R)"false";
+         }
+      }
+      else{
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -425,13 +782,43 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
-      n.f6.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"true";
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         String type1=n.f2.accept(this, argu).toString();
+         if(!type1.equals("boolean"))
+         {
+            // System.out.println("Type of expression must be boolean is: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         n.f3.accept(this, argu);
+         String sir_gen1=n.f4.accept(this, argu).toString();
+         if(!sir_gen1.equals("true"))
+         {
+            _ret=(R)"false";
+         }
+         n.f5.accept(this, argu);
+         String sir_gen2=n.f6.accept(this, argu).toString();
+         if(!sir_gen2.equals("true"))
+         {
+            _ret=(R)"false";
+         }
+      }
+      else{
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+         n.f6.accept(this, argu);
+      }
+
       return _ret;
    }
 
@@ -446,11 +833,34 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"true";
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         String type1=n.f2.accept(this, argu).toString();
+         if(!type1.equals("boolean"))
+         {
+            // System.out.println("Type of expression must be boolean is: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         n.f3.accept(this, argu);
+         String sir_gen=n.f4.accept(this, argu).toString();
+         if(!sir_gen.equals("true"))
+         {
+            _ret=(R)"false";
+         }
+      }
+      else{
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -465,15 +875,35 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"true";
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         String type1=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of expression must be int is: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+            _ret=(R)"false";
+         }
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+      }
+      else{
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+      }
+
       return _ret;
    }
 
-   /**
+   /**Done
     * f0 -> OrExpression()
     *       | AndExpression()
     *       | CompareExpression()
@@ -491,7 +921,21 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=n.f0.accept(this, argu);
+         if(_ret==null)
+         {
+            // System.out.println(scope.get(scope.size()-1));
+            System.out.println("Type Error");
+            System.exit(1);
+         }
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -504,9 +948,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("boolean"))
+         {
+            // System.out.println(scope.get(scope.size()-1)+"Type of Primary Expression 1 should be boolean: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("boolean"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be boolean: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"boolean";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -519,9 +985,33 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("boolean"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be boolean: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+         }
+         if(!type2.equals("boolean"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be boolean: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+         }
+         _ret=(R)"boolean";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -534,9 +1024,33 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+         }
+         _ret=(R)"boolean";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -549,9 +1063,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"boolean";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -564,9 +1100,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"int";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -579,9 +1137,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"int";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -594,9 +1174,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"int";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -609,9 +1211,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"int";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -625,10 +1249,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type1=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         String type2=n.f2.accept(this, argu).toString();
+         if(!type1.equals("int[]"))
+         {
+            // System.out.println("Type of Primary Expression 1 should be int-arr: "+type1);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         if(!type2.equals("int"))
+         {
+            // System.out.println("Type of Primary Expression 2 should be int: "+type2);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"int";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -641,9 +1286,24 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String type=n.f0.accept(this, argu).toString();
+         n.f1.accept(this, argu);
+         if(!type.equals("int[]"))
+         {
+            // System.out.println("Type of Primary Expression should be int-arr: "+type);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"int";
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
       return _ret;
    }
 
@@ -659,13 +1319,124 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
-      n.f5.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String class_name=n.f0.accept(this, argu).toString();
+         
+         if(!class_list.containsKey(class_name))
+         {
+            // System.out.println("Type name not declared");
+            System.out.println("Type Error");
+            System.exit(1);  
+            return _ret;
+         }
+
+         class_info cur_class=class_list.get(class_name);
+
+         n.f1.accept(this, argu);
+
+         String fn_name=n.f2.f0.tokenImage;
+         boolean fn_present=false;
+         while(!fn_present)
+         {
+            if(cur_class.mem_fn_info.containsKey(fn_name))
+            {
+               fn_present=true;
+            }
+            else if(cur_class.parent_class.equals(""))
+            {
+               break;
+            }
+            else
+            {
+               cur_class=class_list.get(cur_class.parent_class);
+            }
+         }
+         if(!fn_present)
+         {
+            // System.out.println("Function name not declared "+fn_name);
+            System.out.println("Type Error");
+            System.exit(1);  
+            return _ret;
+         }
+         fn_info cur_fn=cur_class.mem_fn_info.get(fn_name);
+
+         n.f3.accept(this, argu);
+         // System.out.println(class_name+" "+fn_name+" ");
+         
+         // expr_lists.clear();
+         ArrayList<String> cur_fn_args=new ArrayList<String>();
+         expr_lists.add(cur_fn_args);
+
+         n.f4.accept(this,argu);
+         cur_fn_args=expr_lists.get(expr_lists.size()-1);
+         expr_lists.remove(expr_lists.size()-1);
+         
+         if(cur_fn.fn_argument_types.size()!=cur_fn_args.size())
+         {
+            
+            // System.out.println();
+            // System.out.println("Incorrect number of arguments to function: "+fn_name);
+            System.out.println("Type Error");
+            System.exit(1);  
+            // System.exit(1);
+         }
+         boolean expr_list_match=true;
+
+         for(int i=0;i<cur_fn_args.size();i++)
+         {
+            
+            if(!cur_fn_args.get(i).equals(cur_fn.fn_argument_types.get(i)))
+            {
+               // System.out.print(cur_fn_args.get(i)+" "+cur_fn.fn_argument_types.get(i)+" ");
+               if(class_list.containsKey(cur_fn_args.get(i)) 
+                  && class_list.containsKey(cur_fn.fn_argument_types.get(i)))
+               {
+                  if(checkif_parent(cur_fn_args.get(i),cur_fn.fn_argument_types.get(i)))
+                  {
+                     // System.out.println(checkif_parent(cur_fn.fn_argument_types.get(i),expr_lists.get(i)));
+                     continue;
+                  }
+                  expr_list_match=false;
+               }
+               expr_list_match=false;
+            }
+         }
+
+         if(!expr_list_match)
+         {
+            System.out.println("Type Error");
+            System.exit(1);  
+            // System.out.println("Arguments types don't match");
+         }
+         
+         n.f5.accept(this, argu);
+
+         _ret=(R)cur_fn.ret_type;
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+         n.f5.accept(this, argu);
+      }
+      
       return _ret;
+   }
+
+   boolean checkif_parent(String class_1,String class_2)
+   {
+      class_info cur_class=class_list.get(class_1);
+      while(!cur_class.parent_class.equals(""))
+      {
+         if(cur_class.parent_class.equals(class_2))
+         return true;
+         cur_class=class_list.get(cur_class.parent_class);
+      }
+      return false;
    }
 
    /**
@@ -676,8 +1447,19 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
+      if(ir_gen==1)
+      {  
+         ArrayList<String> cur_arg_list=expr_lists.get(expr_lists.size()-1);
+         cur_arg_list.add(n.f0.accept(this, argu).toString());
+         expr_lists.set(expr_lists.size()-1, cur_arg_list);
+         n.f1.accept(this, argu);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -689,12 +1471,23 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
+      if(ir_gen==1)
+      {
+         n.f0.accept(this, argu);
+         ArrayList<String> cur_arg_list=expr_lists.get(expr_lists.size()-1);
+         cur_arg_list.add(n.f1.accept(this, argu).toString());
+         expr_lists.set(expr_lists.size()-1, cur_arg_list);
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+      }
+      
       return _ret;
    }
 
-   /**
+   /** Done except expressions
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
     *       | FalseLiteral()
@@ -709,18 +1502,35 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      return _ret;
+      if(ir_gen==1)
+      {
+         _ret=n.f0.accept(this, argu);
+         return _ret;
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         return _ret;
+      }
+      
    }
 
    /**
     * f0 -> <INTEGER_LITERAL>
     */
-   public R visit(IntegerLiteral n, A argu) {
+   public R visit(IntegerLiteral n, A argu) {  
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
+      if(ir_gen==1)
+      {
+         _ret=(R)"int";
+         
+      }
+      else
+      {  
+         _ret=n.f0.accept(this, argu); 
+      }
       return _ret;
    }
 
@@ -729,9 +1539,13 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(TrueLiteral n, A argu) {
 		/* YOUR CODE HERE */
-
-      R _ret=null;
-      n.f0.accept(this, argu);
+      if(ir_gen==1)
+      {
+         String _ret="boolean";
+         
+         return (R)_ret;
+      }
+      R _ret=n.f0.accept(this, argu);
       return _ret;
    }
 
@@ -740,9 +1554,14 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(FalseLiteral n, A argu) {
 		/* YOUR CODE HERE */
+      if(ir_gen==1)
+      {
+         String _ret="boolean";
+         
+         return (R)_ret;
+      }
 
-      R _ret=null;
-      n.f0.accept(this, argu);
+      R _ret=n.f0.accept(this, argu);
       return _ret;
    }
 
@@ -751,10 +1570,84 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(Identifier n, A argu) {
 		/* YOUR CODE HERE */
-
       R _ret=null;
-      n.f0.accept(this, argu);
+      if(ir_gen==1)
+      {
+         if(check_class==1)
+         {
+            String type_name=n.f0.accept(this, argu).toString();
+            if(!class_list.containsKey(type_name))
+            {
+               System.out.println("Type Error");
+               System.exit(1);
+               // System.out.println("Unknown type:"+type_name);
+            }
+            
+            _ret=(R)type_name;
+         }
+         else
+         {
+            _ret=(R)var_type(n.f0.accept(this, argu).toString());
+         }
+      }
+      else
+      {
+         _ret=n.f0.accept(this, argu);
+      }
+      
       return _ret;
+   }
+
+   public String var_type(String var_name)
+   {
+      String type="";
+      String cur_class_name="";
+      String cur_fn_name="";
+      class_info cur_class=new class_info();
+      int fn_var=0;
+      if(in_fn==1)
+      {
+         fn_var=1;
+         cur_class_name=scope.get(scope.size()-2);
+         cur_fn_name=scope.get(scope.size()-1);
+         cur_class=class_list.get(cur_class_name);
+         fn_info cur_fn=cur_class.mem_fn_info.get(cur_fn_name);
+         if(cur_fn.fn_variables.containsKey(var_name))
+         {
+            type=cur_fn.fn_variables.get(var_name);
+         }
+         else if(cur_fn.fn_arguments.containsKey(var_name))
+         {
+            type=cur_fn.fn_arguments.get(var_name);
+         }
+         else
+         {
+            fn_var=0;
+         }
+      }
+      if(fn_var==0)
+      {
+         cur_class_name=scope.get(scope.size()-1-in_fn);
+         cur_class=class_list.get(cur_class_name);
+         while(type.equals(""))
+         {
+            if(cur_class.class_variables.containsKey(var_name))
+            {
+               type=cur_class.class_variables.get(var_name);
+            }
+            else if(cur_class.parent_class.equals(""))
+            {
+               break;
+            }
+            else
+            {
+               cur_class=class_list.get(cur_class.parent_class);
+            }
+         }
+      }
+      // if(type.equals(""))
+      // System.out.println(var_name);
+      return type;
    }
 
    /**
@@ -764,6 +1657,20 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
+      if(ir_gen==1)
+      {
+         String cur_class_name=scope.get(scope.size()-in_fn-1);   
+         
+         
+         if(!class_list.containsKey(cur_class_name))
+         {
+            // System.out.println("No class to self reference:"+cur_class_name);
+            System.out.println("Type Error");
+            System.exit(1);  
+            
+         }
+         _ret=(R)cur_class_name;
+      }
       n.f0.accept(this, argu);
       return _ret;
    }
@@ -779,11 +1686,31 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
+      if(ir_gen==1)
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         String type=n.f3.accept(this, argu).toString();
+         if(!type.equals("int"))
+         {
+            // System.out.println("Unable to form array of this data type:"+type);
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         n.f4.accept(this, argu);
+         _ret=(R)"int[]";
+         
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         n.f4.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -797,10 +1724,24 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
-      n.f3.accept(this, argu);
+      if(ir_gen==1)
+      {
+         n.f0.accept(this, argu);
+         check_class=1;
+         _ret=n.f1.accept(this, argu);
+         check_class=0;
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+         
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         n.f3.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -812,8 +1753,25 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
+      if(ir_gen==1)
+      {
+         n.f0.accept(this, argu);
+         String type=n.f1.accept(this, argu).toString() ;
+         if(!type.equals("boolean"))
+         {
+            // System.out.println("Expression not of boolean type");
+            System.out.println("Type Error");
+            System.exit(1);  
+         }
+         _ret=(R)"boolean";
+         
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+      }
+      
       return _ret;
    }
 
@@ -826,12 +1784,24 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 		/* YOUR CODE HERE */
 
       R _ret=null;
-      n.f0.accept(this, argu);
-      n.f1.accept(this, argu);
-      n.f2.accept(this, argu);
+      if(ir_gen==1)
+      {
+         n.f0.accept(this, argu);
+         _ret=n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+         
+      }
+      else
+      {
+         n.f0.accept(this, argu);
+         n.f1.accept(this, argu);
+         n.f2.accept(this, argu);
+      }
+      
       return _ret;
    }
 
+   // Unreachable Grammar
    /**
     * f0 -> Identifier()
     * f1 -> ( IdentifierRest() )*
@@ -854,4 +1824,25 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       return _ret;
    }
 
+}
+
+class fn_info{
+   String fn_name="";
+   String class_name="";
+   String ret_type="";
+   ArrayList<String> fn_argument_types=new ArrayList<String>();
+   HashMap<String,Integer> fn_var_locs =new HashMap<String,Integer>();
+   HashMap<String,String> fn_variables=new HashMap<String,String>();
+   HashMap<String,Integer> fn_arg_locs =new HashMap<String,Integer>();
+   HashMap<String,String> fn_arguments=new HashMap<String,String>();
+
+}
+
+class class_info{
+   String class_name="";
+   String parent_class="";
+   int index=-1;
+   HashMap<String,fn_info> mem_fn_info= new HashMap<String,fn_info>();
+   HashMap<String,Integer> class_var_locs =new HashMap<String,Integer>();
+   HashMap<String,String> class_variables= new HashMap<String,String>();
 }
